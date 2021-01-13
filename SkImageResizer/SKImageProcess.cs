@@ -66,11 +66,9 @@ namespace SkImageResizer
         {
 
             var imgName = Path.GetFileNameWithoutExtension(filePath);
-            SKBitmap bitmap = null;
-            SKImage imgPhoto = null;
-            await Task.Run(() => { bitmap = SKBitmap.Decode(filePath); });
-            await Task.Run(() => { imgPhoto = SKImage.FromBitmap(bitmap); });
-
+            var bitmap = await Task.Run<SKBitmap>(() => SKBitmap.Decode(filePath));
+            var imgPhoto = await Task.Run<SKImage>(() => SKImage.FromBitmap(bitmap));
+            
             var sourceWidth = imgPhoto.Width;
             var sourceHeight = imgPhoto.Height;
 
