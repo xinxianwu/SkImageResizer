@@ -9,9 +9,12 @@ namespace SkImageResizer
     class Program
     {
         static readonly Stopwatch sw = new Stopwatch();
-
+        static CancellationTokenSource cts = new CancellationTokenSource();
+        
         static async Task Main(string[] args)
         {
+            Console.CancelKeyPress += Console_CancelKeyPress;
+            
             var imageProcess = new SKImageProcess();
             var sourcePath = Path.Combine(Environment.CurrentDirectory, "images");
             var destinationPath1 = Path.Combine(Environment.CurrentDirectory, "output1");
@@ -29,18 +32,19 @@ namespace SkImageResizer
             Console.WriteLine($"同步執行花費時間: {result1} ms");
 
             // Async
-
+            
             imageProcess.Clean(destinationPath2);
 
             sw.Restart();
 
             try
             {
-                await imageProcess.ResizeImagesAsync(sourcePath, destinationPath2, 2.0);
+                await imageProcess.ResizeImagesAsync(sourcePath, destinationPath2, 2.0, cts.Token);
             }
             catch (OperationCanceledException ex)
             {
                 Console.WriteLine($"Canceled: {ex}");
+                imageProcess.Clean(destinationPath2);
             }
             catch (Exception ex)
             {
@@ -57,6 +61,13 @@ namespace SkImageResizer
 
             var result = ((result1 - result2) / result1) * 100;
             Console.WriteLine($"效能提升 {result:f2}%");
+        }
+        
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            cts.Cancel();
+
+            e.Cancel = true;
         }
     }
 }
