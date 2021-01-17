@@ -56,21 +56,22 @@ namespace SkImageResizer
             
             var allFiles = FindImages(sourcePath);
             var taskList = allFiles.Select(filePath =>
-                {
-                    Console.WriteLine($"Begin handle : {filePath}");
-                    
-                    token.ThrowIfCancellationRequested();
+            {
+                Console.WriteLine($"Begin handle : {filePath}");
 
-                    //Thread.Sleep(2000); //執行太快會來不及按，故意家上延遲
-                    
-                    return Task.Run(() => ResetImageActionAsync(destPath, scale, filePath));
-                }
-                );
+                //token.ThrowIfCancellationRequested();
+
+                return Task.Run(() => ResizeImageActionAsync(destPath, scale, filePath), token)
+                    .ContinueWith(t1 =>
+                    {
+                        if (t1.IsCanceled) Console.WriteLine("工作已取消");
+                    });
+            });
 
             return Task.WhenAll(taskList);
         }
 
-        private static async Task ResetImageActionAsync(string destPath, double scale, string filePath)
+        private static async Task ResizeImageActionAsync(string destPath, double scale, string filePath)
         {
 
             var imgName = Path.GetFileNameWithoutExtension(filePath);
