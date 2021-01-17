@@ -57,23 +57,19 @@ namespace SkImageResizer
             var allFiles = FindImages(sourcePath);
             var taskList = allFiles.Select(filePath =>
             {
-                Console.WriteLine($"Begin handle : {filePath}");
-
-                //token.ThrowIfCancellationRequested();
-
-                return Task.Run(() => ResizeImageActionAsync(destPath, scale, filePath), token)
-                    .ContinueWith(t1 =>
-                    {
-                        if (t1.IsCanceled) Console.WriteLine("工作已取消");
-                    });
+                return Task.Run(() => ResizeImageActionAsync(destPath, scale, filePath, token));
             });
 
             return Task.WhenAll(taskList);
         }
 
-        private static async Task ResizeImageActionAsync(string destPath, double scale, string filePath)
+        private static async Task ResizeImageActionAsync(string destPath, double scale, string filePath, CancellationToken token = default)
         {
-
+            
+            token.ThrowIfCancellationRequested();
+            Console.WriteLine($"Begin handle : {filePath}");
+            
+            
             var imgName = Path.GetFileNameWithoutExtension(filePath);
             var bitmap = await Task.Run<SKBitmap>(() => SKBitmap.Decode(filePath));
             var imgPhoto = await Task.Run<SKImage>(() => SKImage.FromBitmap(bitmap));
@@ -90,7 +86,7 @@ namespace SkImageResizer
             using var scaledImage = SKImage.FromBitmap(scaledBitmap);
             using var data = scaledImage.Encode(SKEncodedImageFormat.Jpeg, 100);
             await using var s = File.OpenWrite(Path.Combine(destPath, imgName + ".jpg"));
-            await Task.Run(() => data.SaveTo(s));
+            data.SaveTo(s);
         }
 
         /// <summary>

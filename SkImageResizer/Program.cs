@@ -36,10 +36,10 @@ namespace SkImageResizer
             imageProcess.Clean(destinationPath2);
 
             sw.Restart();
-
+            
             try
             {
-                await imageProcess.ResizeImagesAsync(sourcePath, destinationPath2, 2.0, cts.Token);
+                 await imageProcess.ResizeImagesAsync(sourcePath, destinationPath2, 2.0, cts.Token);
             }
             catch (OperationCanceledException ex)
             {
